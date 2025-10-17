@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Suite",
+  "description": "A minimalist web application that provides a chatbot, a text-to-image generator, and an AI image editor, all powered by the Gemini API.",
+  "requestFramePermissions": []
+}
