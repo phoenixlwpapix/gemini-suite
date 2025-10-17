@@ -2,8 +2,10 @@ import React, { useState, useRef } from 'react';
 import { editImage } from '../services/geminiService';
 import { Send, LoaderCircle, Trash2 } from 'lucide-react';
 import Modal from './Modal';
+import { useLanguage } from '../hooks/useLanguage';
 
 const ImageEditor: React.FC = () => {
+  const { t } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [imageHistory, setImageHistory] = useState<string[]>([]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -33,7 +35,7 @@ const ImageEditor: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || imageHistory.length === 0 || isLoading) {
-      if(imageHistory.length === 0) setError("Please upload an image first.");
+      if(imageHistory.length === 0) setError("error_upload_first");
       return;
     }
 
@@ -85,17 +87,17 @@ const ImageEditor: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-4">Image Editor Module</h2>
+      <h2 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-4">{t('image_editor_title')}</h2>
       
       <div className="flex-grow p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center mb-4 min-h-[350px]">
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
-        {error && !isLoading && <p className="text-red-500 dark:text-red-400 text-center">{error}</p>}
+        {error && !isLoading && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
         {activeImage && !isLoading && <img src={activeImage} alt={`Version ${activeImageIndex + 1}`} className="max-h-full max-w-full object-contain rounded-md shadow-lg" />}
         {!activeImage && !isLoading && !error && (
             <div className="text-center text-gray-400 dark:text-gray-500">
-                <p>Upload an image to start</p>
+                <p>{t('image_editor_upload_prompt')}</p>
                 <button onClick={() => fileInputRef.current?.click()} className="mt-2 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors">
-                Select File
+                {t('image_editor_select_file')}
                 </button>
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
             </div>
@@ -109,7 +111,7 @@ const ImageEditor: React.FC = () => {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onFocus={handleInputFocus}
-          placeholder="Describe your edits..."
+          placeholder={t('image_editor_placeholder')}
           className="flex-grow p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
           disabled={isLoading || imageHistory.length === 0}
         />
@@ -125,8 +127,8 @@ const ImageEditor: React.FC = () => {
       {imageHistory.length > 0 && (
           <div className="w-full">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-500 dark:text-gray-400">History</h3>
-                <button onClick={handleClearHistory} title="Clear history and start over" className="p-1 text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                <h3 className="text-lg font-semibold text-gray-500 dark:text-gray-400">{t('image_editor_history')}</h3>
+                <button onClick={handleClearHistory} title={t('image_editor_clear_history')} className="p-1 text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                     <Trash2 className="w-5 h-5" />
                 </button>
               </div>
@@ -143,9 +145,9 @@ const ImageEditor: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmClear}
-        title="Confirm Clear History"
+        title={t('modal_clear_history_title')}
       >
-        <p>Are you sure you want to clear the history? This will remove all images and you will have to upload a new one.</p>
+        <p>{t('modal_clear_history_content')}</p>
       </Modal>
     </div>
   );

@@ -4,15 +4,17 @@ import Sidebar from './components/Sidebar';
 import Chatbot from './components/Chatbot';
 import TextToImage from './components/TextToImage';
 import ImageEditor from './components/ImageEditor';
+import { LanguageProvider, useLanguage } from './hooks/useLanguage';
 
 type Theme = 'light' | 'dark';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeModule, setActiveModule] = useState<Module>(Module.CHATBOT);
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     return savedTheme || 'dark';
   });
+  const { language } = useLanguage();
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -23,6 +25,15 @@ const App: React.FC = () => {
     }
     localStorage.setItem('theme', theme);
   }, [theme]);
+  
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (language === 'zh') {
+      root.classList.add('lang-zh');
+    } else {
+      root.classList.remove('lang-zh');
+    }
+  }, [language]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
@@ -42,7 +53,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-mono">
+    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
       <Sidebar 
         activeModule={activeModule} 
         setActiveModule={setActiveModule}
@@ -55,5 +66,14 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+};
+
 
 export default App;

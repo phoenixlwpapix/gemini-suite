@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Modality, Chat } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
 
@@ -8,31 +8,11 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-export const generateText = async (prompt: string): Promise<string> => {
-  try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error generating text:", error);
-    throw new Error("Failed to generate text. Please try again.");
-  }
+export const startChat = (): Chat => {
+  return ai.chats.create({
+    model: 'gemini-2.5-flash',
+  });
 };
-
-export const generateTextStream = async (prompt: string) => {
-    try {
-        const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-        return response;
-    } catch (error) {
-        console.error("Error generating text stream:", error);
-        throw new Error("Failed to generate text stream. Please try again.");
-    }
-}
 
 export const generateImage = async (prompt: string): Promise<string> => {
     try {
@@ -50,10 +30,13 @@ export const generateImage = async (prompt: string): Promise<string> => {
             const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
             return `data:image/png;base64,${base64ImageBytes}`;
         }
-        throw new Error("No image was generated.");
+        throw new Error("error_no_image_generated");
     } catch (error) {
         console.error("Error generating image:", error);
-        throw new Error("Failed to generate image. Please try again.");
+        if (error instanceof Error && error.message === 'error_no_image_generated') {
+            throw error;
+        }
+        throw new Error("error_generate_image");
     }
 };
 
@@ -71,7 +54,7 @@ export const editImage = async (prompt: string, imageBase64: string, mimeType: s
             model: 'gemini-2.5-flash-image',
             contents: { parts: [imagePart, textPart] },
             config: {
-                responseModalities: [Modality.IMAGE, Modality.TEXT],
+                responseModalities: [Modality.IMAGE],
             },
         });
         
@@ -81,9 +64,12 @@ export const editImage = async (prompt: string, imageBase64: string, mimeType: s
                 return `data:image/png;base64,${base64ImageBytes}`;
             }
         }
-        throw new Error("No edited image was returned.");
+        throw new Error("error_no_edited_image");
     } catch (error) {
         console.error("Error editing image:", error);
-        throw new Error("Failed to edit image. Please try again.");
+        if (error instanceof Error && error.message === 'error_no_edited_image') {
+            throw error;
+        }
+        throw new Error("error_edit_image");
     }
 };

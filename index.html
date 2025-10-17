@@ -1,3 +1,16 @@
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.546.0",
+    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.1"
+  }
+}
+</script>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,10 +25,15 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-      body {
+      html {
         font-family: 'Roboto Mono', monospace;
+      }
+      html.lang-zh {
+        /* By putting Roboto Mono first, it will be used for English characters.
+           For Chinese characters, the browser will fall back to Noto Sans SC. */
+        font-family: 'Roboto Mono', 'Noto Sans SC', sans-serif;
       }
       /* Base Prose styles (Light mode) */
       .prose-custom h1, .prose-custom h2, .prose-custom h3 { color: #0891b2; }
@@ -27,6 +45,7 @@
       .prose-custom pre { background-color: #f3f4f6; padding: 1em; border-radius: 0.5em; overflow-x: auto; border: 1px solid #d1d5db; }
       .prose-custom pre code { padding: 0; background-color: transparent; }
       .prose-custom blockquote { border-left: 4px solid #9ca3af; padding-left: 1em; color: #4b5563; }
+      .prose-custom > :last-child { margin-bottom: 0; }
 
       /* Dark mode Prose styles */
       .dark .prose-custom h1, .dark .prose-custom h2, .dark .prose-custom h3 { color: #22d3ee; }
@@ -35,22 +54,9 @@
       .dark .prose-custom ul, .dark .prose-custom ol { color: #e5e7eb; }
       .dark .prose-custom code { background-color: #1f2937; color: #e5e7eb; }
       .dark .prose-custom pre { background-color: #111827; border-color: #374151; }
-      .dark .prose-custom blockquote { border-left-color: #4b5563; color: #9ca3af; }
+      .dark .prose-custom blockquote { border-left-color: #6b7280; color: #d1d5db; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.23.0",
-    "react-markdown": "https://aistudiocdn.com/react-markdown@^9.0.1",
-    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.417.0"
-  }
-}
-</script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

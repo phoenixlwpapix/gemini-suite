@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, title, children }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -31,13 +33,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, title, childr
                 onClick={onClose}
                 className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
-                Cancel
+                {t('modal_cancel')}
               </button>
               <button
                 onClick={onConfirm}
                 className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
               >
-                Confirm
+                {t('modal_confirm')}
               </button>
             </div>
         </div>
