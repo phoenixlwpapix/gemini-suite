@@ -14,7 +14,9 @@ const AppContent: React.FC = () => {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     return savedTheme || 'dark';
   });
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const [hasKey, setHasKey] = useState(false);
+  const [isCheckingKey, setIsCheckingKey] = useState(true);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -35,6 +37,36 @@ const AppContent: React.FC = () => {
     }
   }, [language]);
 
+  useEffect(() => {
+    const checkKey = async () => {
+        try {
+            const win = window as any;
+            if (win.aistudio && win.aistudio.hasSelectedApiKey) {
+                const hasSelected = await win.aistudio.hasSelectedApiKey();
+                setHasKey(hasSelected);
+            } else {
+                // Fallback for dev environments without the wrapper, assume true or handle differently
+                setHasKey(true);
+            }
+        } catch (e) {
+            console.error("Error checking API key:", e);
+        } finally {
+            setIsCheckingKey(false);
+        }
+    };
+    checkKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    try {
+        const win = window as any;
+        await win.aistudio.openSelectKey();
+        setHasKey(true);
+    } catch (e) {
+        console.error("Error selecting API key:", e);
+    }
+  };
+
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
@@ -51,6 +83,27 @@ const AppContent: React.FC = () => {
         return <Chatbot />;
     }
   };
+
+  if (isCheckingKey) {
+    return <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div></div>;
+  }
+
+  if (!hasKey) {
+    return (
+        <div className="flex h-screen flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-4">
+            <div className="max-w-md text-center space-y-6">
+                <h1 className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{t('auth_title')}</h1>
+                <p className="text-lg">{t('auth_desc')}</p>
+                <button onClick={handleSelectKey} className="px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 font-semibold text-lg transition-colors">
+                    {t('auth_button')}
+                </button>
+                <p className="text-sm text-gray-500">
+                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-cyan-500">{t('auth_billing')}</a>
+                </p>
+            </div>
+        </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">

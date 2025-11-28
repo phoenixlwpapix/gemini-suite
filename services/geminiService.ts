@@ -1,34 +1,41 @@
-import { GoogleGenAI, GenerateContentResponse, Modality, Chat } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+const getAiClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API_KEY environment variable not set");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const startChat = (): Chat => {
+  const ai = getAiClient();
   return ai.chats.create({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-pro-preview',
   });
 };
 
-export const generateImage = async (prompt: string): Promise<string> => {
+export const generateImage = async (prompt: string, aspectRatio: string = "1:1"): Promise<string> => {
     try {
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: prompt,
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-image-preview',
+            contents: {
+              parts: [{ text: prompt }],
+            },
             config: {
-                numberOfImages: 1,
-                outputMimeType: 'image/png',
-                aspectRatio: '1:1',
+                imageConfig: {
+                    aspectRatio: aspectRatio,
+                    imageSize: "1K",
+                },
             },
         });
 
-        if (response.generatedImages && response.generatedImages.length > 0) {
-            const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
-            return `data:image/png;base64,${base64ImageBytes}`;
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+            if (part.inlineData) {
+                const base64ImageBytes: string = part.inlineData.data;
+                return `data:image/png;base64,${base64ImageBytes}`;
+            }
         }
         throw new Error("error_no_image_generated");
     } catch (error) {
@@ -42,6 +49,7 @@ export const generateImage = async (prompt: string): Promise<string> => {
 
 export const editImage = async (prompt: string, imageBase64: string, mimeType: string): Promise<string> => {
     try {
+        const ai = getAiClient();
         const imagePart = {
             inlineData: {
                 data: imageBase64,
@@ -51,14 +59,17 @@ export const editImage = async (prompt: string, imageBase64: string, mimeType: s
         const textPart = { text: prompt };
 
         const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
+            model: 'gemini-3-pro-image-preview',
             contents: { parts: [imagePart, textPart] },
             config: {
-                responseModalities: [Modality.IMAGE],
+              imageConfig: {
+                  aspectRatio: "1:1",
+                  imageSize: "1K",
+              },
             },
         });
         
-        for (const part of response.candidates[0].content.parts) {
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {
                 const base64ImageBytes: string = part.inlineData.data;
                 return `data:image/png;base64,${base64ImageBytes}`;

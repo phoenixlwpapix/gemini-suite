@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { generateImage } from '../services/geminiService';
-import { Send, LoaderCircle } from 'lucide-react';
+import { Send, LoaderCircle, Settings2 } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 
 const TextToImage: React.FC = () => {
@@ -9,7 +9,16 @@ const TextToImage: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [aspectRatio, setAspectRatio] = useState('1:1');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const aspectRatios = [
+    { value: '1:1', label: '1:1' },
+    { value: '16:9', label: '16:9' },
+    { value: '9:16', label: '9:16' },
+    { value: '4:3', label: '4:3' },
+    { value: '3:4', label: '3:4' },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +29,7 @@ const TextToImage: React.FC = () => {
     setImageUrl('');
 
     try {
-      const url = await generateImage(prompt);
+      const url = await generateImage(prompt, aspectRatio);
       setImageUrl(url);
     } catch (err) {
       setError((err as Error).message);
@@ -38,7 +47,27 @@ const TextToImage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-4">{t('text_to_image_title')}</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{t('text_to_image_title')}</h2>
+        
+        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+           {aspectRatios.map((ratio) => (
+             <button
+                key={ratio.value}
+                onClick={() => setAspectRatio(ratio.value)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                  aspectRatio === ratio.value
+                    ? 'bg-white dark:bg-gray-600 text-cyan-600 dark:text-cyan-400 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+                title={`${t('text_to_image_aspect_ratio')}: ${ratio.label}`}
+             >
+               {ratio.label}
+             </button>
+           ))}
+        </div>
+      </div>
+
       <div className="flex-grow flex justify-center items-center p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-4 min-h-[300px] sm:min-h-[400px]">
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
         {error && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
