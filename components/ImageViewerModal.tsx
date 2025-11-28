@@ -61,12 +61,12 @@ const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ isOpen, onClose, im
       {/* Image Container */}
       <div 
         className="relative w-full h-full p-4 md:p-10 flex items-center justify-center opacity-0 animate-zoom-in"
-        onClick={(e) => e.stopPropagation()} // Clicking the image container shouldn't close the modal
       >
         <img
           src={imageSrc}
           alt={altText || 'Full view'}
           className="max-w-full max-h-full object-contain rounded-sm shadow-2xl drop-shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
         />
       </div>
 

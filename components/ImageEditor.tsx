@@ -152,18 +152,20 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ sharedImage, onConsumeSharedI
     <div className="h-full flex flex-col max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-4">{t('image_editor_title')}</h2>
       
-      <div className="flex-grow p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center mb-4 min-h-[350px]">
+      <div className="flex-grow flex flex-col justify-center items-center p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-4 min-h-[300px] sm:min-h-[400px] relative">
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
         {error && !isLoading && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
         {activeImage && !isLoading && (
-            <div className="relative group cursor-zoom-in" onClick={() => setIsViewerOpen(true)}>
-                <img 
-                    src={activeImage} 
-                    alt={`Version ${activeImageIndex + 1}`} 
-                    className="max-h-[50vh] sm:max-h-[60vh] max-w-full object-contain rounded-md shadow-lg transition-transform duration-300 group-hover:scale-[1.01]" 
-                />
-                <div className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ZoomIn className="w-5 h-5" />
+            <div className="flex flex-col items-center justify-center w-full h-full animate-fade-in">
+                <div className="relative group cursor-zoom-in" onClick={() => setIsViewerOpen(true)}>
+                    <img 
+                        src={activeImage} 
+                        alt={`Version ${activeImageIndex + 1}`} 
+                        className="max-h-[50vh] sm:max-h-[60vh] max-w-full object-contain rounded-md shadow-lg transition-transform duration-300 group-hover:scale-[1.01]" 
+                    />
+                    <div className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ZoomIn className="w-5 h-5" />
+                    </div>
                 </div>
             </div>
         )}

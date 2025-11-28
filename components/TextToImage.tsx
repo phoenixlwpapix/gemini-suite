@@ -57,24 +57,47 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
 
   return (
     <div className="h-full flex flex-col max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
         <h2 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{t('text_to_image_title')}</h2>
         
-        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
-           {aspectRatios.map((ratio) => (
-             <button
-                key={ratio.value}
-                onClick={() => setAspectRatio(ratio.value)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-                  aspectRatio === ratio.value
-                    ? 'bg-white dark:bg-gray-600 text-cyan-600 dark:text-cyan-400 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-                title={`${t('text_to_image_aspect_ratio')}: ${ratio.label}`}
-             >
-               {ratio.label}
-             </button>
-           ))}
+        <div className="flex items-center space-x-3 overflow-x-auto max-w-full pb-1 sm:pb-0">
+           {imageUrl && (
+              <div className="flex items-center space-x-2 mr-2">
+                <button
+                  onClick={() => onEditImage(imageUrl)}
+                  className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white dark:bg-gray-700 text-cyan-600 dark:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600 shadow-sm"
+                  title={t('text_to_image_edit_button')}
+                >
+                  <PenSquare className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline text-sm font-medium">{t('text_to_image_edit_button')}</span>
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg bg-cyan-500 text-white hover:bg-cyan-600 transition-colors shadow-sm"
+                  title={t('text_to_image_regenerate')}
+                >
+                  <RefreshCw className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline text-sm font-medium">{t('text_to_image_regenerate')}</span>
+                </button>
+              </div>
+           )}
+
+           <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+             {aspectRatios.map((ratio) => (
+               <button
+                  key={ratio.value}
+                  onClick={() => setAspectRatio(ratio.value)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
+                    aspectRatio === ratio.value
+                      ? 'bg-white dark:bg-gray-600 text-cyan-600 dark:text-cyan-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                  title={`${t('text_to_image_aspect_ratio')}: ${ratio.label}`}
+               >
+                 {ratio.label}
+               </button>
+             ))}
+           </div>
         </div>
       </div>
 
@@ -82,29 +105,12 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
         {error && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
         {imageUrl && (
-            <div className="flex flex-col items-center w-full h-full animate-fade-in">
+            <div className="flex flex-col items-center justify-center w-full h-full animate-fade-in">
                 <div className="relative group cursor-zoom-in" onClick={() => setIsViewerOpen(true)}>
-                  <img src={imageUrl} alt="Generated" className="max-h-[50vh] sm:max-h-[60vh] max-w-full object-contain rounded-md shadow-lg mb-4 transition-transform duration-300 group-hover:scale-[1.01]" />
+                  <img src={imageUrl} alt="Generated" className="max-h-[50vh] sm:max-h-[60vh] max-w-full object-contain rounded-md shadow-lg transition-transform duration-300 group-hover:scale-[1.01]" />
                   <div className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                     <ZoomIn className="w-5 h-5" />
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  <button 
-                    onClick={() => onEditImage(imageUrl)}
-                    className="flex items-center space-x-2 bg-white dark:bg-gray-700 text-cyan-600 dark:text-cyan-400 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
-                  >
-                      <PenSquare className="w-5 h-5" />
-                      <span>{t('text_to_image_edit_button')}</span>
-                  </button>
-                  <button
-                    onClick={handleGenerate}
-                    className="flex items-center space-x-2 bg-cyan-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-cyan-600 transition-colors"
-                  >
-                      <RefreshCw className="w-5 h-5" />
-                      <span>{t('text_to_image_regenerate')}</span>
-                  </button>
                 </div>
             </div>
         )}

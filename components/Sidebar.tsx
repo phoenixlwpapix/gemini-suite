@@ -25,11 +25,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeModule, setActiveModule, theme,
 
   return (
     <aside className="w-16 sm:w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-      <div className="h-16 flex items-center justify-center sm:justify-start sm:px-6 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-bold text-cyan-500 dark:text-cyan-400">
+      <div className="h-auto min-h-[4rem] py-4 flex flex-col items-center justify-center sm:items-start sm:justify-center sm:px-6 border-b border-gray-200 dark:border-gray-700">
+        <h1 className="text-xl font-bold text-cyan-500 dark:text-cyan-400 leading-tight">
           <span className="sm:hidden">{t('sidebar_title_short')}</span>
           <span className="hidden sm:inline">{t('sidebar_title_long')}</span>
         </h1>
+        <span className="hidden sm:block text-[0.6rem] font-bold text-gray-400 dark:text-gray-500 mt-1 tracking-wider uppercase">
+          Powered by Gemini 3 Pro
+        </span>
       </div>
       <nav className="flex-1 py-6 space-y-2">
         {navItems.map((item) => (
