@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { generateImage } from '../services/geminiService';
-import { Send, LoaderCircle, PenSquare } from 'lucide-react';
+import { Send, LoaderCircle, PenSquare, RefreshCw, ZoomIn } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
+import ImageViewerModal from './ImageViewerModal';
 
 interface TextToImageProps {
   onEditImage: (imageUrl: string) => void;
@@ -14,6 +15,7 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const aspectRatios = [
@@ -24,8 +26,7 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
     { value: '3:4', label: '3:4' },
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGenerate = async () => {
     if (!prompt.trim() || isLoading) return;
 
     setIsLoading(true);
@@ -40,6 +41,11 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleGenerate();
   };
 
   const handleInputFocus = () => {
@@ -76,16 +82,31 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
         {error && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
         {imageUrl && (
-            <>
-                <img src={imageUrl} alt="Generated" className="max-h-full max-w-full object-contain rounded-md shadow-lg mb-4" />
-                <button 
-                  onClick={() => onEditImage(imageUrl)}
-                  className="absolute bottom-4 right-4 flex items-center space-x-2 bg-white dark:bg-gray-700 text-cyan-600 dark:text-cyan-400 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
-                >
-                    <PenSquare className="w-5 h-5" />
-                    <span>{t('text_to_image_edit_button')}</span>
-                </button>
-            </>
+            <div className="flex flex-col items-center w-full h-full animate-fade-in">
+                <div className="relative group cursor-zoom-in" onClick={() => setIsViewerOpen(true)}>
+                  <img src={imageUrl} alt="Generated" className="max-h-[50vh] sm:max-h-[60vh] max-w-full object-contain rounded-md shadow-lg mb-4 transition-transform duration-300 group-hover:scale-[1.01]" />
+                  <div className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ZoomIn className="w-5 h-5" />
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <button 
+                    onClick={() => onEditImage(imageUrl)}
+                    className="flex items-center space-x-2 bg-white dark:bg-gray-700 text-cyan-600 dark:text-cyan-400 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
+                  >
+                      <PenSquare className="w-5 h-5" />
+                      <span>{t('text_to_image_edit_button')}</span>
+                  </button>
+                  <button
+                    onClick={handleGenerate}
+                    className="flex items-center space-x-2 bg-cyan-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-cyan-600 transition-colors"
+                  >
+                      <RefreshCw className="w-5 h-5" />
+                      <span>{t('text_to_image_regenerate')}</span>
+                  </button>
+                </div>
+            </div>
         )}
         {!isLoading && !imageUrl && !error && <p className="text-gray-400 dark:text-gray-500">{t('text_to_image_initial_message')}</p>}
       </div>
@@ -109,6 +130,15 @@ const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
           {isLoading ? <LoaderCircle className="animate-spin h-6 w-6" /> : <Send className="w-6 h-6" />}
         </button>
       </form>
+      
+      {imageUrl && (
+        <ImageViewerModal 
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          imageSrc={imageUrl}
+          altText={prompt}
+        />
+      )}
     </div>
   );
 };

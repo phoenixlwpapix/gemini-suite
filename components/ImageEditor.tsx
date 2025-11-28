@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { editImage } from '../services/geminiService';
-import { Send, LoaderCircle, Trash2 } from 'lucide-react';
+import { Send, LoaderCircle, Trash2, ZoomIn } from 'lucide-react';
 import Modal from './Modal';
+import ImageViewerModal from './ImageViewerModal';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface ImageEditorProps {
@@ -18,6 +19,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ sharedImage, onConsumeSharedI
   const [error, setError] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   
   // New state to track the aspect ratio of the current image
   const [currentAspectRatio, setCurrentAspectRatio] = useState<string>("1:1");
@@ -153,7 +155,18 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ sharedImage, onConsumeSharedI
       <div className="flex-grow p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center mb-4 min-h-[350px]">
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
         {error && !isLoading && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
-        {activeImage && !isLoading && <img src={activeImage} alt={`Version ${activeImageIndex + 1}`} className="max-h-full max-w-full object-contain rounded-md shadow-lg" />}
+        {activeImage && !isLoading && (
+            <div className="relative group cursor-zoom-in" onClick={() => setIsViewerOpen(true)}>
+                <img 
+                    src={activeImage} 
+                    alt={`Version ${activeImageIndex + 1}`} 
+                    className="max-h-[50vh] sm:max-h-[60vh] max-w-full object-contain rounded-md shadow-lg transition-transform duration-300 group-hover:scale-[1.01]" 
+                />
+                <div className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ZoomIn className="w-5 h-5" />
+                </div>
+            </div>
+        )}
         {!activeImage && !isLoading && !error && (
             <div className="text-center text-gray-400 dark:text-gray-500">
                 <p>{t('image_editor_upload_prompt')}</p>
@@ -210,6 +223,14 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ sharedImage, onConsumeSharedI
       >
         <p>{t('modal_clear_history_content')}</p>
       </Modal>
+      {activeImage && (
+          <ImageViewerModal
+            isOpen={isViewerOpen}
+            onClose={() => setIsViewerOpen(false)}
+            imageSrc={activeImage}
+            altText={`Edit version ${activeImageIndex + 1}`}
+          />
+      )}
     </div>
   );
 };
