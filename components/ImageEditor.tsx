@@ -1,10 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { editImage } from '../services/geminiService';
 import { Send, LoaderCircle, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { useLanguage } from '../hooks/useLanguage';
 
-const ImageEditor: React.FC = () => {
+interface ImageEditorProps {
+    sharedImage: string | null;
+    onConsumeSharedImage: () => void;
+}
+
+const ImageEditor: React.FC<ImageEditorProps> = ({ sharedImage, onConsumeSharedImage }) => {
   const { t } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [imageHistory, setImageHistory] = useState<string[]>([]);
@@ -13,9 +18,57 @@ const ImageEditor: React.FC = () => {
   const [error, setError] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // New state to track the aspect ratio of the current image
+  const [currentAspectRatio, setCurrentAspectRatio] = useState<string>("1:1");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const promptInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper to find closest supported aspect ratio
+  const getClosestAspectRatio = (width: number, height: number): string => {
+      const ratio = width / height;
+      const ratios: Record<string, number> = {
+        "1:1": 1,
+        "4:3": 4/3,
+        "3:4": 3/4,
+        "16:9": 16/9,
+        "9:16": 9/16,
+      };
+      
+      let closest = "1:1";
+      let minDiff = Number.MAX_VALUE;
+      
+      for (const [key, val] of Object.entries(ratios)) {
+          const diff = Math.abs(val - ratio);
+          if (diff < minDiff) {
+              minDiff = diff;
+              closest = key;
+          }
+      }
+      return closest;
+  };
+
+  const processImage = (imageUrl: string) => {
+      const img = new Image();
+      img.onload = () => {
+          const ratio = getClosestAspectRatio(img.naturalWidth, img.naturalHeight);
+          setCurrentAspectRatio(ratio);
+          setImageHistory([imageUrl]);
+          setActiveImageIndex(0);
+          setError('');
+      };
+      img.src = imageUrl;
+  };
+
+  useEffect(() => {
+      if (sharedImage) {
+          processImage(sharedImage);
+          // Clear shared image so it doesn't reload on every render
+          onConsumeSharedImage();
+          setFile(null); // Clear any previous file selection
+      }
+  }, [sharedImage, onConsumeSharedImage]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -24,9 +77,7 @@ const ImageEditor: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
-        setImageHistory([result]);
-        setActiveImageIndex(0);
-        setError('');
+        processImage(result);
       };
       reader.readAsDataURL(selectedFile);
     }
@@ -44,11 +95,20 @@ const ImageEditor: React.FC = () => {
 
     try {
       const currentImage = imageHistory[activeImageIndex];
-      const base64Image = currentImage.split(',')[1];
+      // Extract base64 and mime type
+      const parts = currentImage.split(',');
+      const base64Image = parts[1];
       
-      const currentFileMimeType = file?.type || 'image/png';
+      // Try to get mime type from data URL, otherwise fallback
+      let mimeType = 'image/png';
+      const match = currentImage.match(/:(.*?);/);
+      if (match) {
+          mimeType = match[1];
+      } else if (file) {
+          mimeType = file.type;
+      }
 
-      const resultUrl = await editImage(prompt, base64Image, currentFileMimeType);
+      const resultUrl = await editImage(prompt, base64Image, mimeType, currentAspectRatio);
       
       const newHistory = imageHistory.slice(0, activeImageIndex + 1);
       newHistory.push(resultUrl);
@@ -81,6 +141,7 @@ const ImageEditor: React.FC = () => {
     setError('');
     setPrompt('');
     setIsModalOpen(false);
+    setCurrentAspectRatio("1:1"); // Reset aspect ratio
   }
 
   const activeImage = imageHistory[activeImageIndex];

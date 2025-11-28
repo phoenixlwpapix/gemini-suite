@@ -1,9 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { generateImage } from '../services/geminiService';
-import { Send, LoaderCircle, Settings2 } from 'lucide-react';
+import { Send, LoaderCircle, PenSquare } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 
-const TextToImage: React.FC = () => {
+interface TextToImageProps {
+  onEditImage: (imageUrl: string) => void;
+}
+
+const TextToImage: React.FC<TextToImageProps> = ({ onEditImage }) => {
   const { t } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -68,10 +72,21 @@ const TextToImage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-grow flex justify-center items-center p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-4 min-h-[300px] sm:min-h-[400px]">
+      <div className="flex-grow flex flex-col justify-center items-center p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-4 min-h-[300px] sm:min-h-[400px] relative">
         {isLoading && <LoaderCircle className="animate-spin h-8 w-8 text-cyan-400" />}
         {error && <p className="text-red-500 dark:text-red-400 text-center">{t(error)}</p>}
-        {imageUrl && <img src={imageUrl} alt="Generated" className="max-h-full max-w-full object-contain rounded-md shadow-lg" />}
+        {imageUrl && (
+            <>
+                <img src={imageUrl} alt="Generated" className="max-h-full max-w-full object-contain rounded-md shadow-lg mb-4" />
+                <button 
+                  onClick={() => onEditImage(imageUrl)}
+                  className="absolute bottom-4 right-4 flex items-center space-x-2 bg-white dark:bg-gray-700 text-cyan-600 dark:text-cyan-400 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
+                >
+                    <PenSquare className="w-5 h-5" />
+                    <span>{t('text_to_image_edit_button')}</span>
+                </button>
+            </>
+        )}
         {!isLoading && !imageUrl && !error && <p className="text-gray-400 dark:text-gray-500">{t('text_to_image_initial_message')}</p>}
       </div>
 

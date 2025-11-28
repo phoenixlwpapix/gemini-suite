@@ -47,7 +47,7 @@ export const generateImage = async (prompt: string, aspectRatio: string = "1:1")
     }
 };
 
-export const editImage = async (prompt: string, imageBase64: string, mimeType: string): Promise<string> => {
+export const editImage = async (prompt: string, imageBase64: string, mimeType: string, aspectRatio: string = "1:1"): Promise<string> => {
     try {
         const ai = getAiClient();
         const imagePart = {
@@ -63,7 +63,7 @@ export const editImage = async (prompt: string, imageBase64: string, mimeType: s
             contents: { parts: [imagePart, textPart] },
             config: {
               imageConfig: {
-                  aspectRatio: "1:1",
+                  aspectRatio: aspectRatio,
                   imageSize: "1K",
               },
             },

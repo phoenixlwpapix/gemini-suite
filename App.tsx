@@ -17,6 +17,9 @@ const AppContent: React.FC = () => {
   const { language, t } = useLanguage();
   const [hasKey, setHasKey] = useState(false);
   const [isCheckingKey, setIsCheckingKey] = useState(true);
+  
+  // State for sharing image between TextToImage and ImageEditor
+  const [sharedImage, setSharedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -71,6 +74,11 @@ const AppContent: React.FC = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
+  const handleEditImage = (imageUrl: string) => {
+    setSharedImage(imageUrl);
+    setActiveModule(Module.IMAGE_EDITOR);
+  };
+
   if (isCheckingKey) {
     return <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div></div>;
   }
@@ -105,10 +113,10 @@ const AppContent: React.FC = () => {
           <Chatbot />
         </div>
         <div className={activeModule === Module.TEXT_TO_IMAGE ? 'h-full block' : 'hidden'}>
-          <TextToImage />
+          <TextToImage onEditImage={handleEditImage} />
         </div>
         <div className={activeModule === Module.IMAGE_EDITOR ? 'h-full block' : 'hidden'}>
-          <ImageEditor />
+          <ImageEditor sharedImage={sharedImage} onConsumeSharedImage={() => setSharedImage(null)} />
         </div>
       </main>
     </div>
