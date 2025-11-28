@@ -2,13 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { startChat } from '../services/geminiService';
-import { Send, LoaderCircle, RefreshCw } from 'lucide-react';
+import { Send, LoaderCircle, RefreshCw, Globe, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import type { Chat } from '@google/genai';
+
+interface Source {
+  title: string;
+  uri: string;
+}
 
 interface Message {
   role: 'user' | 'model';
   text: string;
+  sources?: Source[];
 }
 
 const Chatbot: React.FC = () => {
@@ -52,16 +58,42 @@ const Chatbot: React.FC = () => {
     try {
       setChatHistory(prev => [...prev, { role: 'model', text: '' }]);
       const stream = await chatSession.sendMessageStream({ message: currentPrompt });
+      
       let fullResponse = '';
+      const gatheredSources: Source[] = [];
+      const seenUris = new Set<string>();
+
       for await (const chunk of stream) {
         if (chunk.text) {
           fullResponse += chunk.text;
-          setChatHistory(prev => {
-            const newHistory = [...prev];
-            newHistory[newHistory.length - 1].text = fullResponse;
-            return newHistory;
-          });
         }
+
+        // Extract grounding chunks (search results)
+        const groundingChunks = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        if (groundingChunks) {
+           groundingChunks.forEach(gChunk => {
+             if (gChunk.web && gChunk.web.uri && gChunk.web.title) {
+               if (!seenUris.has(gChunk.web.uri)) {
+                 seenUris.add(gChunk.web.uri);
+                 gatheredSources.push({
+                   title: gChunk.web.title,
+                   uri: gChunk.web.uri
+                 });
+               }
+             }
+           });
+        }
+
+        setChatHistory(prev => {
+          const newHistory = [...prev];
+          const lastMsg = newHistory[newHistory.length - 1];
+          lastMsg.text = fullResponse;
+          // Update sources if found, preventing overwrite with empty if streaming logic varies
+          if (gatheredSources.length > 0) {
+              lastMsg.sources = [...gatheredSources];
+          }
+          return newHistory;
+        });
       }
     } catch (err) {
       const errorMessage = (err as Error).message;
@@ -85,18 +117,43 @@ const Chatbot: React.FC = () => {
         <div ref={chatContainerRef} className="flex-grow p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-y-auto mb-4 min-h-[200px] space-y-4">
             {chatHistory.length === 0 && !isLoading && <p className="text-gray-400 dark:text-gray-500 text-center p-8">{t('chatbot_initial_message')}</p>}
             {chatHistory.map((msg, index) => (
-              <div key={index} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={index} className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'model' && (
-                  <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0 text-sm">G</div>
+                  <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0 text-sm mt-1">G</div>
                 )}
-                <div className={`prose-custom max-w-xl p-3 rounded-lg shadow-md ${msg.role === 'user' ? 'bg-cyan-100 dark:bg-cyan-900' : 'bg-white dark:bg-gray-700'}`}>
-                  {isLoading && index === chatHistory.length - 1 && !msg.text ? 
-                    <LoaderCircle className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400" /> :
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
-                  }
+                <div className={`flex flex-col max-w-xl ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`prose-custom p-3 rounded-lg shadow-md ${msg.role === 'user' ? 'bg-cyan-100 dark:bg-cyan-900' : 'bg-white dark:bg-gray-700'}`}>
+                      {isLoading && index === chatHistory.length - 1 && !msg.text ? 
+                        <LoaderCircle className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400" /> :
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                      }
+                    </div>
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="mt-2 text-xs w-full">
+                        <div className="flex items-center text-gray-500 dark:text-gray-400 mb-1 font-medium">
+                          <Globe className="w-3 h-3 mr-1" />
+                          <span>Sources</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {msg.sources.map((source, sIndex) => (
+                            <a 
+                              key={sIndex} 
+                              href={source.uri} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center bg-gray-200 dark:bg-gray-600 hover:bg-cyan-100 dark:hover:bg-cyan-900 text-gray-700 dark:text-gray-200 px-2 py-1 rounded transition-colors truncate max-w-full"
+                              title={source.title}
+                            >
+                              <span className="truncate max-w-[150px]">{source.title}</span>
+                              <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
                 {msg.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-bold flex-shrink-0 text-sm">U</div>
+                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-bold flex-shrink-0 text-sm mt-1">U</div>
                 )}
               </div>
             ))}

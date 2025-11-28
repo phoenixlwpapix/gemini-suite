@@ -12,6 +12,9 @@ export const startChat = (): Chat => {
   const ai = getAiClient();
   return ai.chats.create({
     model: 'gemini-3-pro-preview',
+    config: {
+      tools: [{ googleSearch: {} }],
+    },
   });
 };
 
@@ -28,6 +31,7 @@ export const generateImage = async (prompt: string, aspectRatio: string = "1:1")
                     aspectRatio: aspectRatio,
                     imageSize: "1K",
                 },
+                tools: [{ googleSearch: {} }],
             },
         });
 
@@ -66,6 +70,7 @@ export const editImage = async (prompt: string, imageBase64: string, mimeType: s
                   aspectRatio: aspectRatio,
                   imageSize: "1K",
               },
+              tools: [{ googleSearch: {} }],
             },
         });
         
