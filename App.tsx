@@ -71,19 +71,6 @@ const AppContent: React.FC = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
-  const renderModule = () => {
-    switch (activeModule) {
-      case Module.CHATBOT:
-        return <Chatbot />;
-      case Module.TEXT_TO_IMAGE:
-        return <TextToImage />;
-      case Module.IMAGE_EDITOR:
-        return <ImageEditor />;
-      default:
-        return <Chatbot />;
-    }
-  };
-
   if (isCheckingKey) {
     return <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div></div>;
   }
@@ -114,7 +101,15 @@ const AppContent: React.FC = () => {
         toggleTheme={toggleTheme} 
       />
       <main className="flex-1 p-6 sm:p-10 overflow-y-auto">
-        {renderModule()}
+        <div className={activeModule === Module.CHATBOT ? 'h-full block' : 'hidden'}>
+          <Chatbot />
+        </div>
+        <div className={activeModule === Module.TEXT_TO_IMAGE ? 'h-full block' : 'hidden'}>
+          <TextToImage />
+        </div>
+        <div className={activeModule === Module.IMAGE_EDITOR ? 'h-full block' : 'hidden'}>
+          <ImageEditor />
+        </div>
       </main>
     </div>
   );
