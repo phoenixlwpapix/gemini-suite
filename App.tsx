@@ -101,14 +101,14 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div className="flex flex-col sm:flex-row h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
       <Sidebar 
         activeModule={activeModule} 
         setActiveModule={setActiveModule}
         theme={theme}
         toggleTheme={toggleTheme} 
       />
-      <main className="flex-1 p-6 sm:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-10 overflow-y-auto">
         <div className={activeModule === Module.CHATBOT ? 'h-full block' : 'hidden'}>
           <Chatbot />
         </div>
